@@ -1,6 +1,7 @@
 import unittest
 
-from markdown import extract_markdown_images, extract_markdown_links
+from markdown import extract_markdown_images, extract_markdown_links, markdown_to_blocks
+from textnode import TextNode, TextType
 
 
 class TestMarkdown(unittest.TestCase):
@@ -64,6 +65,66 @@ class TestMarkdown(unittest.TestCase):
             matches,
         )
 
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_empty_markdown(self):
+        self.assertEqual(markdown_to_blocks(""), [])
+
+    def test_excessive_newlines(self):
+        md = """
+# Heading
+
+
+This is a paragraph.
+
+
+
+- Item 1
+- Item 2
+"""
+        blocks = markdown_to_blocks(md)
+
+        self.assertEqual(
+            blocks,
+            [
+                "# Heading",
+                "This is a paragraph.",
+                "- Item 1\n- Item 2",
+            ],
+        )
+
+    def test_leading_and_trailing_whitespace(self):
+        md = "  # Heading  \n\n  Some paragraph  "
+        blocks = markdown_to_blocks(md)
+
+        self.assertEqual(
+            blocks,
+            [
+                "# Heading",
+                "Some paragraph",
+            ],
+        )
 
 if __name__ == "__main__":
     unittest.main()
